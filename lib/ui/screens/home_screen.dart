@@ -5,7 +5,7 @@ import '../widgets/hero_section.dart';
 import '../widgets/footer_section.dart';
 import '../widgets/journey_input_form.dart';
 import '../widgets/result_panel.dart';
-import '../widgets/features_grid.dart';
+import '../widgets/route_map.dart';
 import '../widgets/faq_accordion.dart';
 import '../../core/theme/app_theme.dart';
 
@@ -27,8 +27,8 @@ class HomeScreen extends StatelessWidget {
                     const HeroSection(),
                     const SizedBox(height: 24),
                     _buildMainGrid(context),
-                    const SizedBox(height: 80),
-                    const FeaturesGrid(),
+                    const SizedBox(height: 24),
+                    _buildMapSection(context),
                     const SizedBox(height: 80),
                     const FaqAccordion(),
                     const SizedBox(height: 80),
@@ -43,7 +43,15 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-
+  Widget _buildMapSection(BuildContext context) {
+    return Center(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 1100),
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: const RouteMap(),
+      ),
+    );
+  }
 
   Widget _buildMainGrid(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 768;

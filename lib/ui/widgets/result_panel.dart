@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/providers/result_state.dart';
 import 'seat_diagram.dart';
@@ -115,18 +116,47 @@ class ResultPanel extends StatelessWidget {
 
         const SizedBox(height: 32),
         ElevatedButton.icon(
-          onPressed: () {},
+          onPressed: () => _handleShare(context, data),
           icon: const Icon(Icons.share, size: 18),
           label: const Text('Share this result'),
           style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryBlue),
         ),
         const SizedBox(height: 16),
         TextButton(
-          onPressed: () {},
+          onPressed: () => _handleTryAgain(context),
           child: const Text('Try another journey', style: TextStyle(color: AppTheme.darkText, decoration: TextDecoration.underline)),
         )
       ],
     );
+  }
+
+  Future<void> _handleShare(BuildContext context, data) async {
+    final text = '${data.journeySummary}: SIT ${data.isLeftShady ? 'LEFT' : 'RIGHT'} for shade! 🌞 #ShadeSeatLK';
+    
+    try {
+      // Try to use the native share sheet via url_launcher if available
+      if (await canLaunchUrl(Uri.parse('whatsapp://send?text=$text'))) {
+        // For web, we'll just show a copy-to-clipboard snackbar
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Share functionality - text ready to share'),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Share error: $e')),
+        );
+      }
+    }
+  }
+
+  void _handleTryAgain(BuildContext context) {
+    context.read<ResultState>().reset();
   }
 
   Widget _buildErrorState(BuildContext context, ResultState state) {

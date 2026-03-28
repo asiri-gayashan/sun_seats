@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/calculation_engine.dart'; // To get LatLngNode
 
 enum ResultPanelState { empty, loading, success, error }
 
@@ -7,12 +8,14 @@ class MockResultData {
   final int shadyPercentage;
   final String journeySummary;
   final String explanation;
+  final List<LatLngNode> routePoints;
 
   MockResultData({
     required this.isLeftShady,
     required this.shadyPercentage,
     required this.journeySummary,
     required this.explanation,
+    required this.routePoints,
   });
 }
 

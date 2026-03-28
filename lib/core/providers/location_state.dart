@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/location_service.dart';
 
 class LocationState extends ChangeNotifier {
   bool _isFetching = false;
@@ -9,12 +10,15 @@ class LocationState extends ChangeNotifier {
     _isFetching = true;
     notifyListeners();
 
-    // Mock API/GPS delay for Phase 3 UI interaction
-    await Future.delayed(const Duration(seconds: 1));
-
-    _isFetching = false;
-    notifyListeners();
-
-    return 'Colombo, Sri Lanka'; // Mocked location for Phase 3
+    try {
+      final loc = await LocationService.getCurrentCity();
+      _isFetching = false;
+      notifyListeners();
+      return loc;
+    } catch (e) {
+      _isFetching = false;
+      notifyListeners();
+      return null;
+    }
   }
 }

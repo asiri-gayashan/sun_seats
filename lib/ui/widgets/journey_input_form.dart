@@ -4,6 +4,9 @@ import '../../core/theme/app_theme.dart';
 import '../../core/providers/journey_form_state.dart';
 import '../../core/providers/location_state.dart';
 import '../../core/providers/result_state.dart';
+import '../../core/services/directions_service.dart';
+import '../../core/services/calculation_engine.dart';
+import '../../core/services/places_service.dart';
 
 class JourneyInputForm extends StatefulWidget {
   const JourneyInputForm({super.key});
@@ -59,21 +62,40 @@ class _JourneyInputFormState extends State<JourneyInputForm> {
 
     resultState.startLoading();
 
-    // Mock API Delay representing Phase 4 calculation
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      DateTime journeyDt = DateTime(
+        formState.journeyDate.year,
+        formState.journeyDate.month,
+        formState.journeyDate.day,
+        formState.journeyTime.hour,
+        formState.journeyTime.minute,
+      );
 
-    // For mocking purposes in Phase 3, if start == "error", throw error state
-    if (formState.startLocation.toLowerCase() == 'error') {
-      resultState.setError('Could not trace a recognized route for these points.');
-      return;
+      final routeData = await DirectionsService.getRoutePolyline(
+        formState.startLocation,
+        formState.endLocation,
+        formState.transitMode,
+      );
+
+      final pathPoints = CalculationEngine.decodePolyline(routeData.polyline);
+      if (pathPoints.isEmpty) throw 'Route could not be decoded.';
+
+      final shadeResult = CalculationEngine.calculateShade(pathPoints, journeyDt);
+
+      String explanation = shadeResult.isLeftShady 
+          ? 'The sun will mostly hit the right side. Sit on the left for shade.'
+          : 'The sun will mostly hit the left side. Sit on the right for shade.';
+
+      resultState.setSuccess(MockResultData(
+        isLeftShady: shadeResult.isLeftShady,
+        shadyPercentage: shadeResult.shadyPercentage,
+        journeySummary: '${formState.startLocation} → ${formState.endLocation} • ${formState.transitMode} • ${routeData.distance}',
+        explanation: explanation,
+        routePoints: pathPoints,
+      ));
+    } catch (e) {
+      resultState.setError(e.toString());
     }
-
-    resultState.setSuccess(MockResultData(
-      isLeftShady: true, // Mocked determination
-      shadyPercentage: 82,
-      journeySummary: '${formState.startLocation} → ${formState.endLocation} • ${formState.transitMode}',
-      explanation: 'The sun will be mostly on your right side. Sit on the left for shade.',
-    ));
   }
 
   @override
@@ -115,12 +137,14 @@ class _JourneyInputFormState extends State<JourneyInputForm> {
       children: [
         const Text('Start Location', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.darkText)),
         const SizedBox(height: 8),
-        TextField(
+        _LocationAutocomplete(
           controller: _startController,
-          decoration: const InputDecoration(
-            hintText: 'e.g. Colombo Fort',
-            prefixIcon: Icon(Icons.location_on_outlined, color: AppTheme.midGray),
-          ),
+          hintText: 'e.g. Colombo Fort',
+          prefixIcon: Icons.location_on_outlined,
+          iconColor: AppTheme.midGray,
+          onChanged: (val) {
+            context.read<JourneyFormState>().setStartLocation(val);
+          },
         ),
         const SizedBox(height: 12),
         GestureDetector(
@@ -140,12 +164,14 @@ class _JourneyInputFormState extends State<JourneyInputForm> {
         const SizedBox(height: 24),
         const Text('End Location', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.darkText)),
         const SizedBox(height: 8),
-        TextField(
+        _LocationAutocomplete(
           controller: _endController,
-          decoration: const InputDecoration(
-            hintText: 'e.g. Kandy',
-            prefixIcon: Icon(Icons.location_on, color: AppTheme.primaryBlue),
-          ),
+          hintText: 'e.g. Kandy',
+          prefixIcon: Icons.location_on,
+          iconColor: AppTheme.primaryBlue,
+          onChanged: (val) {
+            context.read<JourneyFormState>().setEndLocation(val);
+          },
         ),
       ],
     );
@@ -168,7 +194,9 @@ class _JourneyInputFormState extends State<JourneyInputForm> {
                 readOnly: true,
                 onTap: () async {
                   final picked = await showDatePicker(context: context, initialDate: formState.journeyDate, firstDate: DateTime.now(), lastDate: DateTime.now().add(const Duration(days: 365)));
-                  if (picked != null) context.read<JourneyFormState>().setJourneyDate(picked);
+                  if (picked != null && context.mounted) {
+                    context.read<JourneyFormState>().setJourneyDate(picked);
+                  }
                 },
                 decoration: InputDecoration(
                   hintText: dateStr,
@@ -328,3 +356,114 @@ class _TransitModeButton extends StatelessWidget {
     );
   }
 }
+
+class _LocationAutocomplete extends StatefulWidget {
+  final TextEditingController controller;
+  final String hintText;
+  final IconData prefixIcon;
+  final Color iconColor;
+  final void Function(String) onChanged;
+
+  const _LocationAutocomplete({
+    required this.controller,
+    required this.hintText,
+    required this.prefixIcon,
+    required this.iconColor,
+    required this.onChanged,
+  });
+
+  @override
+  State<_LocationAutocomplete> createState() => _LocationAutocompleteState();
+}
+
+class _LocationAutocompleteState extends State<_LocationAutocomplete> {
+  late FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode = FocusNode();
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RawAutocomplete<String>(
+      textEditingController: widget.controller,
+      focusNode: _focusNode,
+      optionsBuilder: (TextEditingValue textEditingValue) async {
+        if (textEditingValue.text.length < 2) {
+          return const Iterable<String>.empty();
+        }
+        return await PlacesService.getPlaceSuggestions(textEditingValue.text);
+      },
+      onSelected: (String selection) {
+        widget.onChanged(selection);
+      },
+      fieldViewBuilder: (context, txtController, focusNode, onFieldSubmitted) {
+        return ValueListenableBuilder<TextEditingValue>(
+          valueListenable: txtController,
+          builder: (context, value, child) {
+            return TextField(
+              controller: txtController,
+              focusNode: focusNode,
+              onChanged: widget.onChanged,
+              decoration: InputDecoration(
+                hintText: widget.hintText,
+                prefixIcon: Icon(widget.prefixIcon, color: widget.iconColor),
+                suffixIcon: value.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, size: 18, color: AppTheme.midGray),
+                        onPressed: () {
+                          txtController.clear();
+                          widget.onChanged('');
+                        },
+                      )
+                    : null,
+              ),
+            );
+          },
+        );
+      },
+      optionsViewBuilder: (context, onSelected, options) {
+        return Align(
+          alignment: Alignment.topLeft,
+          child: Material(
+            elevation: 4.0,
+            color: AppTheme.white,
+            borderRadius: BorderRadius.circular(8),
+            child: SizedBox(
+              height: 250.0,
+              width: MediaQuery.of(context).size.width >= 768 
+                  ? MediaQuery.of(context).size.width * 0.4 
+                  : MediaQuery.of(context).size.width * 0.8,
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                itemCount: options.length,
+                itemBuilder: (BuildContext context, int index) {
+                  final String option = options.elementAt(index);
+                  return InkWell(
+                    onTap: () => onSelected(option),
+                    child: Container(
+                      padding: const EdgeInsets.all(16.0),
+                      decoration: const BoxDecoration(
+                        border: Border(bottom: BorderSide(color: AppTheme.lightGray)),
+                      ),
+                      child: Text(option, style: const TextStyle(fontSize: 14, color: AppTheme.darkText)),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
