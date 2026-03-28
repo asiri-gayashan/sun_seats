@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/providers/result_state.dart';
 import 'seat_diagram.dart';
 
-enum ResultPanelState { empty, loading, success, error }
-
 class ResultPanel extends StatelessWidget {
-  final ResultPanelState state;
-
-  const ResultPanel({super.key, this.state = ResultPanelState.empty});
+  const ResultPanel({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final state = context.watch<ResultState>();
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -23,21 +22,21 @@ class ResultPanel extends StatelessWidget {
       ),
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
-        child: _buildContent(context),
+        child: _buildContent(context, state),
       ),
     );
   }
 
-  Widget _buildContent(BuildContext context) {
-    switch (state) {
+  Widget _buildContent(BuildContext context, ResultState state) {
+    switch (state.status) {
       case ResultPanelState.empty:
         return _buildEmptyState(context);
       case ResultPanelState.loading:
         return _buildLoadingState(context);
       case ResultPanelState.success:
-        return _buildSuccessState(context);
+        return _buildSuccessState(context, state);
       case ResultPanelState.error:
-        return _buildErrorState(context);
+        return _buildErrorState(context, state);
     }
   }
 
@@ -82,13 +81,16 @@ class ResultPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildSuccessState(BuildContext context) {
-    bool isLeft = DateTime.now().year >= 2000; // Hardcoded true for layout, dynamic for linter
+  Widget _buildSuccessState(BuildContext context, ResultState state) {
+    final data = state.resultData;
+    if (data == null) return const SizedBox();
+    
+    bool isLeft = data.isLeftShady; 
     return Column(
       key: const ValueKey('success'),
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        const Text('Colombo → Kandy • 29 Mar 2026 • 2:00 PM • Bus', style: TextStyle(fontSize: 12, color: AppTheme.darkText)),
+        Text(data.journeySummary, style: const TextStyle(fontSize: 12, color: AppTheme.darkText)),
         const SizedBox(height: 24),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -100,12 +102,12 @@ class ResultPanel extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Text(
-          'The sun will be mostly on your right side. Sit on the left for shade.',
+          data.explanation,
           textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 14, color: AppTheme.darkText),
         ),
         const SizedBox(height: 8),
-        const Text('82% of route', style: TextStyle(fontSize: 12, color: AppTheme.amber, fontWeight: FontWeight.bold)),
+        Text('${data.shadyPercentage}% of route', style: const TextStyle(fontSize: 12, color: AppTheme.amber, fontWeight: FontWeight.bold)),
         const SizedBox(height: 24),
 
         // Seat Diagram!
@@ -127,7 +129,7 @@ class ResultPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildErrorState(BuildContext context) {
+  Widget _buildErrorState(BuildContext context, ResultState state) {
     return Column(
       key: const ValueKey('error'),
       mainAxisAlignment: MainAxisAlignment.center,
@@ -137,10 +139,10 @@ class ResultPanel extends StatelessWidget {
         const SizedBox(height: 16),
         Text('Could not find this route', style: Theme.of(context).textTheme.headlineSmall),
         const SizedBox(height: 8),
-        const Text('Please check your start and end locations and try again. Make sure both are valid Sri Lankan towns or cities.', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: AppTheme.darkText)),
+        Text(state.errorMessage ?? 'Please check your start and end locations.', textAlign: TextAlign.center, style: const TextStyle(fontSize: 14, color: AppTheme.darkText)),
         const SizedBox(height: 24),
         TextButton(
-          onPressed: () {},
+          onPressed: () => state.reset(),
           child: const Text('Try Again', style: TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold)),
         ),
         const SizedBox(height: 40),

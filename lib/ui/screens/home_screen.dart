@@ -57,7 +57,7 @@ class HomeScreen extends StatelessWidget {
                 children: [
                   JourneyInputForm(),
                   SizedBox(height: 24),
-                  ResultPanel(state: ResultPanelState.success), // Preview static state
+                  ResultPanel(), // Preview static state
                 ],
               )
             : const Row(
@@ -65,7 +65,7 @@ class HomeScreen extends StatelessWidget {
                 children: [
                   Expanded(child: JourneyInputForm()),
                   SizedBox(width: 24),
-                  Expanded(child: ResultPanel(state: ResultPanelState.success)),
+                  Expanded(child: ResultPanel()),
                 ],
               ),
       ),
