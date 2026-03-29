@@ -26,10 +26,11 @@ class DirectionsService {
     // Transit modes handling
     String apiMode = 'driving';
     String extraParams = '';
-    
+
     if (mode.toLowerCase() == 'train') {
       apiMode = 'transit';
-      extraParams = '&transit_mode=train&transit_routing_preference=fewer_transfers';
+      extraParams =
+          '&transit_mode=train&transit_routing_preference=fewer_transfers';
     } else if (mode.toLowerCase() == 'bus') {
       apiMode = 'transit';
       extraParams = '&transit_mode=bus';

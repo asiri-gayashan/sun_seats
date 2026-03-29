@@ -6,11 +6,28 @@ class LatLngNode {
   LatLngNode(this.lat, this.lng);
 }
 
+class SegmentShade {
+  final LatLngNode pt1;
+  final LatLngNode pt2;
+  final bool isSunOnRight;
+
+  SegmentShade({
+    required this.pt1,
+    required this.pt2,
+    required this.isSunOnRight,
+  });
+}
+
 class ShadeResult {
   final bool isLeftShady;
   final int shadyPercentage;
+  final List<SegmentShade> segments;
 
-  ShadeResult({required this.isLeftShady, required this.shadyPercentage});
+  ShadeResult({
+    required this.isLeftShady,
+    required this.shadyPercentage,
+    required this.segments,
+  });
 }
 
 class CalculationEngine {
@@ -172,7 +189,23 @@ class CalculationEngine {
     }
 
     int total = rightHits + leftHits;
-    if (total == 0) return ShadeResult(isLeftShady: true, shadyPercentage: 50);
+    if (total == 0) {
+      return ShadeResult(isLeftShady: true, shadyPercentage: 50, segments: []);
+    }
+
+    // Generate segment shades for the actual path to render uncompressed on map
+    List<SegmentShade> segments = [];
+    for (int i = 0; i < path.length - 1; i++) {
+      LatLngNode p1 = path[i];
+      LatLngNode p2 = path[i + 1];
+
+      double b = _calculateBearing(p1, p2);
+      double az = _calculateSunAzimuth(journeyTime, p1.lat, p1.lng);
+      double d = (az - b + 360.0) % 360.0;
+      bool sunOnRight = (d > 0 && d < 180);
+
+      segments.add(SegmentShade(pt1: p1, pt2: p2, isSunOnRight: sunOnRight));
+    }
 
     // The SHADY side is the OPPOSITE of where the sun is hitting.
     // So if rightHits > leftHits, the sun is mostly hitting the right.
@@ -181,7 +214,11 @@ class CalculationEngine {
     int percentage = ((isLeftShady ? rightHits : leftHits) / total * 100)
         .round();
 
-    return ShadeResult(isLeftShady: isLeftShady, shadyPercentage: percentage);
+    return ShadeResult(
+      isLeftShady: isLeftShady,
+      shadyPercentage: percentage,
+      segments: segments,
+    );
   }
 
   /// Calculates the sun's azimuth in degrees (0=North, 90=East, 180=South, 270=West)

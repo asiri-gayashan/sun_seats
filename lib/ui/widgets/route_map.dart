@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../core/providers/result_state.dart';
+import '../../core/services/calculation_engine.dart';
 import '../../core/theme/app_theme.dart';
 
 class RouteMap extends StatefulWidget {
@@ -220,19 +221,73 @@ class _RouteMapState extends State<RouteMap> {
       );
     }
 
-    final routePoints = state.resultData!.routePoints
+final routePoints = state.resultData!.routePoints
         .map((node) => LatLng(node.lat, node.lng))
         .toList();
 
-    polylines.add(
-      Polyline(
-        polylineId: const PolylineId('route_primary'),
-        points: routePoints,
-        color: AppTheme.primaryGreen, // A single theme color for now
-        width: 6,
-        zIndex: 1, // ensure primary is drawn on top
-      ),
-    );
+    // Draw primary route based on sun hit segments
+    bool isLeftRecommended = state.resultData!.isLeftShady;
+    final dynamic rawSegments = state.resultData!.routeSegments;
+    final List<SegmentShade> segments = rawSegments == null
+        ? <SegmentShade>[]
+        : List<SegmentShade>.from(rawSegments);
+
+    if (segments.isEmpty && routePoints.isNotEmpty) {
+      // Fallback if segments fail to generate or from hot reload memory state
+      polylines.add(
+        Polyline(
+          polylineId: const PolylineId('route_primary_fallback'),
+          points: routePoints,
+          color: Colors.blue,
+          width: 6,
+          zIndex: 2,
+        ),
+      );
+    } else {
+      List<LatLng> currentPath = [];
+      bool? currentIsShady;
+      int polylineIndex = 0;
+
+      for (var seg in segments) {
+        bool isSegmentShadyForRecommended = isLeftRecommended
+            ? seg.isSunOnRight
+            : !seg.isSunOnRight;
+
+        if (currentIsShady == null) {
+          currentIsShady = isSegmentShadyForRecommended;
+          currentPath.add(LatLng(seg.pt1.lat, seg.pt1.lng));
+        } else if (currentIsShady != isSegmentShadyForRecommended) {
+          currentPath.add(LatLng(seg.pt1.lat, seg.pt1.lng));
+
+          polylines.add(
+            Polyline(
+              polylineId: PolylineId('route_primary_$polylineIndex'),
+              points: List.from(currentPath),
+              color: currentIsShady ? Colors.blue : Colors.orange,
+              width: 6,
+              zIndex: 2,
+            ),
+          );
+
+          currentPath = [LatLng(seg.pt1.lat, seg.pt1.lng)];
+          currentIsShady = isSegmentShadyForRecommended;
+          polylineIndex++;
+        }
+        currentPath.add(LatLng(seg.pt2.lat, seg.pt2.lng));
+      }
+
+      if (currentPath.isNotEmpty && currentIsShady != null) {
+        polylines.add(
+          Polyline(
+            polylineId: PolylineId('route_primary_$polylineIndex'),
+            points: currentPath,
+            color: currentIsShady ? Colors.blue : Colors.orange,
+            width: 6,
+            zIndex: 2,
+          ),
+        );
+      }
+    }
 
     return Container(
       height: 400,
