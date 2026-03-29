@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class PlacesService {
-  static const String _apiKey = 'AIzaSyDNaXdGGDljKmK8GaY6AnGMEq131yOlbio'; // Project Maps Key
+  static const String _apiKey =
+      'AIzaSyDNaXdGGDljKmK8GaY6AnGMEq131yOlbio'; // Project Maps Key
 
   static Future<List<String>> getPlaceSuggestions(String query) async {
     if (query.trim().length < 2) return [];
@@ -11,7 +12,8 @@ class PlacesService {
       final encodedQuery = Uri.encodeComponent(query);
       // Restrict results to Sri Lanka (country code: lk)
       final url = Uri.parse(
-          'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$encodedQuery&components=country:lk&key=$_apiKey');
+        'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$encodedQuery&components=country:lk&key=$_apiKey',
+      );
 
       final response = await http.get(url);
 

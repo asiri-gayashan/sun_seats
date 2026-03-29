@@ -9,6 +9,7 @@ class MockResultData {
   final String journeySummary;
   final String explanation;
   final List<LatLngNode> routePoints;
+  final List<List<LatLngNode>> alternateRoutesPoints;
 
   MockResultData({
     required this.isLeftShady,
@@ -16,6 +17,7 @@ class MockResultData {
     required this.journeySummary,
     required this.explanation,
     required this.routePoints,
+    this.alternateRoutesPoints = const [],
   });
 }
 

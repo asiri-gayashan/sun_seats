@@ -29,9 +29,21 @@ class AppTheme {
         bodyLarge: TextStyle(color: darkText, fontSize: 16),
         bodyMedium: TextStyle(color: darkText, fontSize: 14),
         bodySmall: TextStyle(color: darkText, fontSize: 12),
-        headlineLarge: TextStyle(color: darkText, fontSize: 28, fontWeight: FontWeight.bold),
-        headlineMedium: TextStyle(color: darkText, fontSize: 24, fontWeight: FontWeight.bold),
-        headlineSmall: TextStyle(color: darkText, fontSize: 20, fontWeight: FontWeight.w600),
+        headlineLarge: TextStyle(
+          color: darkText,
+          fontSize: 28,
+          fontWeight: FontWeight.bold,
+        ),
+        headlineMedium: TextStyle(
+          color: darkText,
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+        ),
+        headlineSmall: TextStyle(
+          color: darkText,
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+        ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(

@@ -37,7 +37,7 @@ class HeroSection extends StatelessWidget {
                 const Text(
                   'Sri Lanka bus & train journeys',
                   style: TextStyle(fontSize: 12, color: AppTheme.darkText),
-                )
+                ),
               ],
             ),
           ),
@@ -47,10 +47,10 @@ class HeroSection extends StatelessWidget {
             'Ride the shady side',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                  fontSize: isMobile ? 22 : 26,
-                  color: AppTheme.darkText,
-                  fontWeight: FontWeight.w800,
-                ),
+              fontSize: isMobile ? 22 : 26,
+              color: AppTheme.darkText,
+              fontWeight: FontWeight.w800,
+            ),
           ),
           const SizedBox(height: 12),
           // Subtitle
@@ -58,8 +58,9 @@ class HeroSection extends StatelessWidget {
             'Enter your journey details and we’ll tell you exactly which\nside to sit on to avoid the sun.',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppTheme.primaryBlue, // "secondary colour" per spec. Using primaryBlue or darkText with opacity. Let's use darkText lightly.
-                ),
+              color: AppTheme
+                  .primaryBlue, // "secondary colour" per spec. Using primaryBlue or darkText with opacity. Let's use darkText lightly.
+            ),
           ),
         ],
       ),

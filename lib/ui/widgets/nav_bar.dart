@@ -26,12 +26,20 @@ class NavBar extends StatelessWidget {
                   color: AppTheme.primaryGreen,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.wb_sunny, color: AppTheme.white, size: 16),
+                child: const Icon(
+                  Icons.wb_sunny,
+                  color: AppTheme.white,
+                  size: 16,
+                ),
               ),
               const SizedBox(width: 8),
               const Text(
                 'ShadeSeat LK',
-                style: TextStyle(fontWeight: FontWeight.w500, fontSize: 15, color: AppTheme.darkText),
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 15,
+                  color: AppTheme.darkText,
+                ),
               ),
             ],
           ),
@@ -68,11 +76,23 @@ class _LanguageSelector extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _LanguagePillButton(locale: const Locale('en'), text: 'EN', isSelected: languageState.appLocale.languageCode == 'en'),
+        _LanguagePillButton(
+          locale: const Locale('en'),
+          text: 'EN',
+          isSelected: languageState.appLocale.languageCode == 'en',
+        ),
         const SizedBox(width: 4),
-        _LanguagePillButton(locale: const Locale('si'), text: 'සිං', isSelected: languageState.appLocale.languageCode == 'si'),
+        _LanguagePillButton(
+          locale: const Locale('si'),
+          text: 'සිං',
+          isSelected: languageState.appLocale.languageCode == 'si',
+        ),
         const SizedBox(width: 4),
-        _LanguagePillButton(locale: const Locale('ta'), text: 'த', isSelected: languageState.appLocale.languageCode == 'ta'),
+        _LanguagePillButton(
+          locale: const Locale('ta'),
+          text: 'த',
+          isSelected: languageState.appLocale.languageCode == 'ta',
+        ),
       ],
     );
   }
@@ -97,7 +117,9 @@ class _LanguagePillButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           color: isSelected ? AppTheme.lightGreen : Colors.transparent,
-          border: Border.all(color: isSelected ? AppTheme.primaryGreen : AppTheme.midGray),
+          border: Border.all(
+            color: isSelected ? AppTheme.primaryGreen : AppTheme.midGray,
+          ),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Text(

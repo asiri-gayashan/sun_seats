@@ -48,16 +48,14 @@ class ShadeSeatApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           debugShowCheckedModeBanner: false,
           locale: languageState.appLocale,
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ] + [AppLocalizations.delegate],
-          supportedLocales: const [
-            Locale('en'),
-            Locale('si'),
-            Locale('ta'),
-          ],
+          localizationsDelegates:
+              const [
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ] +
+              [AppLocalizations.delegate],
+          supportedLocales: const [Locale('en'), Locale('si'), Locale('ta')],
           home: const HomeScreen(),
         );
       },

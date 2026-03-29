@@ -12,9 +12,7 @@ class SeatDiagram extends StatelessWidget {
       width: double.infinity,
       height: 160,
       color: AppTheme.lightGray,
-      child: CustomPaint(
-        painter: _BusPainter(isLeftShady: isLeftShady),
-      ),
+      child: CustomPaint(painter: _BusPainter(isLeftShady: isLeftShady)),
     );
   }
 }
@@ -60,42 +58,80 @@ class _BusPainter extends CustomPainter {
     final aisleWidth = 16.0;
     final seatWidth = 12.0;
     final seatHeight = 8.0;
-    
+
     final startY = vehicleRect.top + 30;
     final rowSpacing = 20.0;
-    
-    final leftColX1 = vehicleRect.left + (vehicleWidth / 2) - aisleWidth / 2 - seatWidth * 2 - 10;
+
+    final leftColX1 =
+        vehicleRect.left +
+        (vehicleWidth / 2) -
+        aisleWidth / 2 -
+        seatWidth * 2 -
+        10;
     final leftColX2 = leftColX1 + seatWidth + 4;
-    
-    final rightColX1 = vehicleRect.left + (vehicleWidth / 2) + aisleWidth / 2 + 10;
+
+    final rightColX1 =
+        vehicleRect.left + (vehicleWidth / 2) + aisleWidth / 2 + 10;
     final rightColX2 = rightColX1 + seatWidth + 4;
 
     // Draw seats (3 rows, 2 cols on each side)
     for (int row = 0; row < 3; row++) {
       final y = startY + (row * rowSpacing);
-      
+
       // Draw left seats
-      _drawSeat(canvas, Offset(leftColX1, y), seatWidth, seatHeight, isLeftShady);
-      _drawSeat(canvas, Offset(leftColX2, y), seatWidth, seatHeight, isLeftShady);
-      
+      _drawSeat(
+        canvas,
+        Offset(leftColX1, y),
+        seatWidth,
+        seatHeight,
+        isLeftShady,
+      );
+      _drawSeat(
+        canvas,
+        Offset(leftColX2, y),
+        seatWidth,
+        seatHeight,
+        isLeftShady,
+      );
+
       // Draw right seats
-      _drawSeat(canvas, Offset(rightColX1, y), seatWidth, seatHeight, !isLeftShady);
-      _drawSeat(canvas, Offset(rightColX2, y), seatWidth, seatHeight, !isLeftShady);
+      _drawSeat(
+        canvas,
+        Offset(rightColX1, y),
+        seatWidth,
+        seatHeight,
+        !isLeftShady,
+      );
+      _drawSeat(
+        canvas,
+        Offset(rightColX2, y),
+        seatWidth,
+        seatHeight,
+        !isLeftShady,
+      );
     }
 
     // Draw labels 'Shady' and 'Sunny'
     final textPainter = TextPainter(textDirection: TextDirection.ltr);
-    
+
     textPainter.text = TextSpan(
       text: isLeftShady ? 'Shady' : 'Sunny',
-      style: TextStyle(color: isLeftShady ? AppTheme.primaryGreen : AppTheme.amber, fontSize: 10, fontWeight: FontWeight.bold),
+      style: TextStyle(
+        color: isLeftShady ? AppTheme.primaryGreen : AppTheme.amber,
+        fontSize: 10,
+        fontWeight: FontWeight.bold,
+      ),
     );
     textPainter.layout();
     textPainter.paint(canvas, Offset(leftColX1 + 4, startY + 3 * rowSpacing));
-    
+
     textPainter.text = TextSpan(
       text: !isLeftShady ? 'Shady' : 'Sunny',
-      style: TextStyle(color: !isLeftShady ? AppTheme.primaryGreen : AppTheme.amber, fontSize: 10, fontWeight: FontWeight.bold),
+      style: TextStyle(
+        color: !isLeftShady ? AppTheme.primaryGreen : AppTheme.amber,
+        fontSize: 10,
+        fontWeight: FontWeight.bold,
+      ),
     );
     textPainter.layout();
     textPainter.paint(canvas, Offset(rightColX1 + 4, startY + 3 * rowSpacing));
@@ -112,14 +148,20 @@ class _BusPainter extends CustomPainter {
     final paint = Paint()
       ..color = isShady ? AppTheme.lightGreen : AppTheme.lightAmber
       ..style = PaintingStyle.fill;
-      
+
     final borderPaint = Paint()
       ..color = isShady ? AppTheme.primaryGreen : AppTheme.amber
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 
-    canvas.drawRRect(RRect.fromRectAndRadius(seatRect, const Radius.circular(2)), paint);
-    canvas.drawRRect(RRect.fromRectAndRadius(seatRect, const Radius.circular(2)), borderPaint);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(seatRect, const Radius.circular(2)),
+      paint,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(seatRect, const Radius.circular(2)),
+      borderPaint,
+    );
   }
 
   @override

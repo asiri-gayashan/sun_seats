@@ -30,13 +30,18 @@ class FooterSection extends StatelessWidget {
               children: [
                 _FooterLink('Privacy Policy', onTap: () {}),
                 const SizedBox(width: 16),
-                _FooterLink('About', onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AboutScreen()));
-                }),
+                _FooterLink(
+                  'About',
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const AboutScreen()),
+                    );
+                  },
+                ),
                 const SizedBox(width: 16),
                 _FooterLink('Contact', onTap: () {}),
               ],
-            )
+            ),
           ],
         ),
       ),
@@ -56,7 +61,11 @@ class _FooterLink extends StatelessWidget {
       onTap: onTap,
       child: Text(
         text,
-        style: const TextStyle(fontSize: 12, color: AppTheme.primaryBlue, decoration: TextDecoration.underline),
+        style: const TextStyle(
+          fontSize: 12,
+          color: AppTheme.primaryBlue,
+          decoration: TextDecoration.underline,
+        ),
       ),
     );
   }

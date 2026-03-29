@@ -13,7 +13,10 @@ class FeaturesGrid extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
           children: [
-            Text('Why use ShadeSeat LK?', style: Theme.of(context).textTheme.headlineMedium),
+            Text(
+              'Why use ShadeSeat LK?',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
             const SizedBox(height: 32),
             GridView.count(
               shrinkWrap: true,
@@ -23,12 +26,36 @@ class FeaturesGrid extends StatelessWidget {
               mainAxisSpacing: 24,
               childAspectRatio: isMobile ? 3.5 : 2.5,
               children: const [
-                _FeatureCard(title: 'No account needed', icon: Icons.no_accounts, desc: 'Use instantly without signing up.'),
-                _FeatureCard(title: 'Sri Lanka routes', icon: Icons.directions_bus, desc: 'Optimised for long-distance travel.'),
-                _FeatureCard(title: 'Works offline', icon: Icons.wifi_off, desc: 'Calculations run right on your phone.'),
-                _FeatureCard(title: 'Sinhala & Tamil', icon: Icons.translate, desc: 'Fully translated into local languages.'),
-                _FeatureCard(title: 'UV index warning', icon: Icons.wb_sunny_rounded, desc: 'Get alerts for extreme sun intensity.'),
-                _FeatureCard(title: 'Free forever', icon: Icons.money_off, desc: 'No subscriptions, no hidden fees.'),
+                _FeatureCard(
+                  title: 'No account needed',
+                  icon: Icons.no_accounts,
+                  desc: 'Use instantly without signing up.',
+                ),
+                _FeatureCard(
+                  title: 'Sri Lanka routes',
+                  icon: Icons.directions_bus,
+                  desc: 'Optimised for long-distance travel.',
+                ),
+                _FeatureCard(
+                  title: 'Works offline',
+                  icon: Icons.wifi_off,
+                  desc: 'Calculations run right on your phone.',
+                ),
+                _FeatureCard(
+                  title: 'Sinhala & Tamil',
+                  icon: Icons.translate,
+                  desc: 'Fully translated into local languages.',
+                ),
+                _FeatureCard(
+                  title: 'UV index warning',
+                  icon: Icons.wb_sunny_rounded,
+                  desc: 'Get alerts for extreme sun intensity.',
+                ),
+                _FeatureCard(
+                  title: 'Free forever',
+                  icon: Icons.money_off,
+                  desc: 'No subscriptions, no hidden fees.',
+                ),
               ],
             ),
           ],
@@ -43,7 +70,11 @@ class _FeatureCard extends StatelessWidget {
   final String desc;
   final IconData icon;
 
-  const _FeatureCard({required this.title, required this.desc, required this.icon});
+  const _FeatureCard({
+    required this.title,
+    required this.desc,
+    required this.icon,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -64,9 +95,23 @@ class _FeatureCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.darkText)),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: AppTheme.darkText,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text(desc, style: const TextStyle(fontSize: 12, color: AppTheme.midGray, height: 1.2)),
+                Text(
+                  desc,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.midGray,
+                    height: 1.2,
+                  ),
+                ),
               ],
             ),
           ),

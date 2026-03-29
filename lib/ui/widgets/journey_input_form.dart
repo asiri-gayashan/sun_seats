@@ -55,7 +55,9 @@ class _JourneyInputFormState extends State<JourneyInputForm> {
 
     if (!formState.isValid) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter valid start and end locations.')),
+        const SnackBar(
+          content: Text('Please enter valid start and end locations.'),
+        ),
       );
       return;
     }
@@ -71,28 +73,47 @@ class _JourneyInputFormState extends State<JourneyInputForm> {
         formState.journeyTime.minute,
       );
 
-      final routeData = await DirectionsService.getRoutePolyline(
+      final routesData = await DirectionsService.getRoutePolylines(
         formState.startLocation,
         formState.endLocation,
         formState.transitMode,
       );
 
-      final pathPoints = CalculationEngine.decodePolyline(routeData.polyline);
+      if (routesData.isEmpty) throw 'No routes found.';
+      final primaryRoute = routesData[0];
+      final pathPoints = CalculationEngine.decodePolyline(
+        primaryRoute.polyline,
+      );
+
+      List<List<LatLngNode>> alternates = [];
+      for (int i = 1; i < routesData.length; i++) {
+        alternates.add(
+          CalculationEngine.decodePolyline(routesData[i].polyline),
+        );
+      }
+
       if (pathPoints.isEmpty) throw 'Route could not be decoded.';
 
-      final shadeResult = CalculationEngine.calculateShade(pathPoints, journeyDt);
+      final shadeResult = CalculationEngine.calculateShade(
+        pathPoints,
+        journeyDt,
+      );
 
-      String explanation = shadeResult.isLeftShady 
+      String explanation = shadeResult.isLeftShady
           ? 'The sun will mostly hit the right side. Sit on the left for shade.'
           : 'The sun will mostly hit the left side. Sit on the right for shade.';
 
-      resultState.setSuccess(MockResultData(
-        isLeftShady: shadeResult.isLeftShady,
-        shadyPercentage: shadeResult.shadyPercentage,
-        journeySummary: '${formState.startLocation} → ${formState.endLocation} • ${formState.transitMode} • ${routeData.distance}',
-        explanation: explanation,
-        routePoints: pathPoints,
-      ));
+      resultState.setSuccess(
+        MockResultData(
+          isLeftShady: shadeResult.isLeftShady,
+          shadyPercentage: shadeResult.shadyPercentage,
+          journeySummary:
+              '${formState.startLocation} → ${formState.endLocation} • ${formState.transitMode} • ${primaryRoute.distance}',
+          explanation: explanation,
+          routePoints: pathPoints,
+          alternateRoutesPoints: alternates,
+        ),
+      );
     } catch (e) {
       resultState.setError(e.toString());
     }
@@ -107,13 +128,16 @@ class _JourneyInputFormState extends State<JourneyInputForm> {
         border: Border.all(color: AppTheme.midGray, width: 0.5),
         borderRadius: BorderRadius.circular(8),
         boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2))
+          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Plan your journey', style: Theme.of(context).textTheme.headlineSmall),
+          Text(
+            'Plan your journey',
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
           const SizedBox(height: 24),
           _buildLocationFields(context),
           const SizedBox(height: 24),
@@ -135,7 +159,14 @@ class _JourneyInputFormState extends State<JourneyInputForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Start Location', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.darkText)),
+        const Text(
+          'Start Location',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+            color: AppTheme.darkText,
+          ),
+        ),
         const SizedBox(height: 8),
         _LocationAutocomplete(
           controller: _startController,
@@ -152,17 +183,40 @@ class _JourneyInputFormState extends State<JourneyInputForm> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              isFetchingLoc 
-                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Icon(Icons.my_location, size: 16, color: AppTheme.primaryBlue),
+              isFetchingLoc
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(
+                      Icons.my_location,
+                      size: 16,
+                      color: AppTheme.primaryBlue,
+                    ),
               const SizedBox(width: 6),
-              Text(isFetchingLoc ? 'Getting location...' : 'Use Current Location', 
-                   style: TextStyle(color: isFetchingLoc ? AppTheme.midGray : AppTheme.primaryBlue, fontSize: 13, fontWeight: FontWeight.w500)),
+              Text(
+                isFetchingLoc ? 'Getting location...' : 'Use Current Location',
+                style: TextStyle(
+                  color: isFetchingLoc
+                      ? AppTheme.midGray
+                      : AppTheme.primaryBlue,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ],
           ),
         ),
         const SizedBox(height: 24),
-        const Text('End Location', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.darkText)),
+        const Text(
+          'End Location',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+            color: AppTheme.darkText,
+          ),
+        ),
         const SizedBox(height: 8),
         _LocationAutocomplete(
           controller: _endController,
@@ -179,7 +233,8 @@ class _JourneyInputFormState extends State<JourneyInputForm> {
 
   Widget _buildDateTimeFields(BuildContext context) {
     final formState = context.watch<JourneyFormState>();
-    final dateStr = '${formState.journeyDate.day}/${formState.journeyDate.month}/${formState.journeyDate.year}';
+    final dateStr =
+        '${formState.journeyDate.day}/${formState.journeyDate.month}/${formState.journeyDate.year}';
     final timeStr = formState.journeyTime.format(context);
 
     return Row(
@@ -188,19 +243,35 @@ class _JourneyInputFormState extends State<JourneyInputForm> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Date', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.darkText)),
+              const Text(
+                'Date',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: AppTheme.darkText,
+                ),
+              ),
               const SizedBox(height: 8),
               TextField(
                 readOnly: true,
                 onTap: () async {
-                  final picked = await showDatePicker(context: context, initialDate: formState.journeyDate, firstDate: DateTime.now(), lastDate: DateTime.now().add(const Duration(days: 365)));
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: formState.journeyDate,
+                    firstDate: DateTime.now(),
+                    lastDate: DateTime.now().add(const Duration(days: 365)),
+                  );
                   if (picked != null && context.mounted) {
                     context.read<JourneyFormState>().setJourneyDate(picked);
                   }
                 },
                 decoration: InputDecoration(
                   hintText: dateStr,
-                  suffixIcon: const Icon(Icons.calendar_today, size: 18, color: AppTheme.midGray),
+                  suffixIcon: const Icon(
+                    Icons.calendar_today,
+                    size: 18,
+                    color: AppTheme.midGray,
+                  ),
                 ),
               ),
             ],
@@ -211,21 +282,35 @@ class _JourneyInputFormState extends State<JourneyInputForm> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Time', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.darkText)),
+              const Text(
+                'Time',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: AppTheme.darkText,
+                ),
+              ),
               const SizedBox(height: 8),
               TextField(
                 readOnly: true,
                 onTap: () async {
-                  final picked = await showTimePicker(context: context, initialTime: formState.journeyTime);
+                  final picked = await showTimePicker(
+                    context: context,
+                    initialTime: formState.journeyTime,
+                  );
                   if (picked != null) {
                     if (context.mounted) {
-                       context.read<JourneyFormState>().setJourneyTime(picked);
+                      context.read<JourneyFormState>().setJourneyTime(picked);
                     }
                   }
                 },
                 decoration: InputDecoration(
                   hintText: timeStr,
-                  suffixIcon: const Icon(Icons.access_time, size: 18, color: AppTheme.midGray),
+                  suffixIcon: const Icon(
+                    Icons.access_time,
+                    size: 18,
+                    color: AppTheme.midGray,
+                  ),
                 ),
               ),
             ],
@@ -240,7 +325,14 @@ class _JourneyInputFormState extends State<JourneyInputForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Mode of Transit', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.darkText)),
+        const Text(
+          'Mode of Transit',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+            color: AppTheme.darkText,
+          ),
+        ),
         const SizedBox(height: 8),
         Row(
           children: [
@@ -248,21 +340,24 @@ class _JourneyInputFormState extends State<JourneyInputForm> {
               text: 'Bus',
               icon: Icons.directions_bus,
               isSelected: formState.transitMode == 'Bus',
-              onTap: () => context.read<JourneyFormState>().setTransitMode('Bus'),
+              onTap: () =>
+                  context.read<JourneyFormState>().setTransitMode('Bus'),
             ),
             const SizedBox(width: 12),
             _TransitModeButton(
               text: 'Train',
               icon: Icons.train,
               isSelected: formState.transitMode == 'Train',
-              onTap: () => context.read<JourneyFormState>().setTransitMode('Train'),
+              onTap: () =>
+                  context.read<JourneyFormState>().setTransitMode('Train'),
             ),
             const SizedBox(width: 12),
             _TransitModeButton(
               text: 'Other',
               icon: Icons.directions_car,
               isSelected: formState.transitMode == 'Other',
-              onTap: () => context.read<JourneyFormState>().setTransitMode('Other'),
+              onTap: () =>
+                  context.read<JourneyFormState>().setTransitMode('Other'),
             ),
           ],
         ),
@@ -275,7 +370,14 @@ class _JourneyInputFormState extends State<JourneyInputForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Timezone', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.darkText)),
+        const Text(
+          'Timezone',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+            color: AppTheme.darkText,
+          ),
+        ),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -288,10 +390,17 @@ class _JourneyInputFormState extends State<JourneyInputForm> {
               isExpanded: true,
               value: formState.timezone,
               items: ['(UTC+05:30) Sri Lanka', '(UTC+00:00) London']
-                  .map((e) => DropdownMenuItem(value: e, child: Text(e, style: const TextStyle(fontSize: 14))))
+                  .map(
+                    (e) => DropdownMenuItem(
+                      value: e,
+                      child: Text(e, style: const TextStyle(fontSize: 14)),
+                    ),
+                  )
                   .toList(),
               onChanged: (val) {
-                if (val != null) context.read<JourneyFormState>().setTimezone(val);
+                if (val != null) {
+                  context.read<JourneyFormState>().setTimezone(val);
+                }
               },
             ),
           ),
@@ -334,12 +443,18 @@ class _TransitModeButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
             color: isSelected ? AppTheme.lightGreen : AppTheme.white,
-            border: Border.all(color: isSelected ? AppTheme.primaryGreen : AppTheme.midGray),
+            border: Border.all(
+              color: isSelected ? AppTheme.primaryGreen : AppTheme.midGray,
+            ),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
             children: [
-              Icon(icon, color: isSelected ? AppTheme.primaryGreen : AppTheme.midGray, size: 24),
+              Icon(
+                icon,
+                color: isSelected ? AppTheme.primaryGreen : AppTheme.midGray,
+                size: 24,
+              ),
               const SizedBox(height: 4),
               Text(
                 text,
@@ -418,7 +533,11 @@ class _LocationAutocompleteState extends State<_LocationAutocomplete> {
                 prefixIcon: Icon(widget.prefixIcon, color: widget.iconColor),
                 suffixIcon: value.text.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear, size: 18, color: AppTheme.midGray),
+                        icon: const Icon(
+                          Icons.clear,
+                          size: 18,
+                          color: AppTheme.midGray,
+                        ),
                         onPressed: () {
                           txtController.clear();
                           widget.onChanged('');
@@ -439,8 +558,8 @@ class _LocationAutocompleteState extends State<_LocationAutocomplete> {
             borderRadius: BorderRadius.circular(8),
             child: SizedBox(
               height: 250.0,
-              width: MediaQuery.of(context).size.width >= 768 
-                  ? MediaQuery.of(context).size.width * 0.4 
+              width: MediaQuery.of(context).size.width >= 768
+                  ? MediaQuery.of(context).size.width * 0.4
                   : MediaQuery.of(context).size.width * 0.8,
               child: ListView.builder(
                 padding: EdgeInsets.zero,
@@ -452,9 +571,17 @@ class _LocationAutocompleteState extends State<_LocationAutocomplete> {
                     child: Container(
                       padding: const EdgeInsets.all(16.0),
                       decoration: const BoxDecoration(
-                        border: Border(bottom: BorderSide(color: AppTheme.lightGray)),
+                        border: Border(
+                          bottom: BorderSide(color: AppTheme.lightGray),
+                        ),
                       ),
-                      child: Text(option, style: const TextStyle(fontSize: 14, color: AppTheme.darkText)),
+                      child: Text(
+                        option,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppTheme.darkText,
+                        ),
+                      ),
                     ),
                   );
                 },
@@ -466,4 +593,3 @@ class _LocationAutocompleteState extends State<_LocationAutocomplete> {
     );
   }
 }
-
