@@ -24,14 +24,23 @@ class DirectionsService {
     String mode,
   ) async {
     // Transit modes handling
-    String apiMode = mode.toLowerCase() == 'train' ? 'transit' : 'driving';
+    String apiMode = 'driving';
+    String extraParams = '';
+    
+    if (mode.toLowerCase() == 'train') {
+      apiMode = 'transit';
+      extraParams = '&transit_mode=train&transit_routing_preference=fewer_transfers';
+    } else if (mode.toLowerCase() == 'bus') {
+      apiMode = 'transit';
+      extraParams = '&transit_mode=bus';
+    }
 
     // Safety matching for Sri Lankan cities
     final originQuery = Uri.encodeComponent('$origin, Sri Lanka');
     final destQuery = Uri.encodeComponent('$destination, Sri Lanka');
 
     final url = Uri.parse(
-      'https://maps.googleapis.com/maps/api/directions/json?origin=$originQuery&destination=$destQuery&mode=$apiMode&alternatives=true&key=$_apiKey',
+      'https://maps.googleapis.com/maps/api/directions/json?origin=$originQuery&destination=$destQuery&mode=$apiMode$extraParams&alternatives=true&key=$_apiKey',
     );
 
     final response = await http.get(url);
