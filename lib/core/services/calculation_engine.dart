@@ -46,16 +46,19 @@ class CalculationEngine {
   }
 
   /// Re-samples a polyline into N evenly spaced segments
-  static List<LatLngNode> samplePoints(List<LatLngNode> points, {int numPoints = 100}) {
+  static List<LatLngNode> samplePoints(
+    List<LatLngNode> points, {
+    int numPoints = 100,
+  }) {
     if (points.isEmpty) return [];
     if (points.length == 1) return points;
 
     double totalDist = 0;
     List<double> cumulativeDist = [0.0];
     for (int i = 0; i < points.length - 1; i++) {
-        double d = _haversine(points[i], points[i+1]);
-        totalDist += d;
-        cumulativeDist.add(totalDist);
+      double d = _haversine(points[i], points[i + 1]);
+      totalDist += d;
+      cumulativeDist.add(totalDist);
     }
 
     double segmentLength = totalDist / (numPoints - 1);
@@ -63,21 +66,29 @@ class CalculationEngine {
 
     int currIndex = 0;
     for (int i = 1; i < numPoints - 1; i++) {
-        double targetDist = i * segmentLength;
-        while (currIndex < cumulativeDist.length - 1 && cumulativeDist[currIndex + 1] < targetDist) {
-            currIndex++;
-        }
-        
-        if (currIndex >= points.length - 1) {
-            break; 
-        }
+      double targetDist = i * segmentLength;
+      while (currIndex < cumulativeDist.length - 1 &&
+          cumulativeDist[currIndex + 1] < targetDist) {
+        currIndex++;
+      }
 
-        double distBetween = cumulativeDist[currIndex + 1] - cumulativeDist[currIndex];
-        double fraction = distBetween == 0 ? 0 : (targetDist - cumulativeDist[currIndex]) / distBetween;
+      if (currIndex >= points.length - 1) {
+        break;
+      }
 
-        double tLat = points[currIndex].lat + fraction * (points[currIndex + 1].lat - points[currIndex].lat);
-        double tLng = points[currIndex].lng + fraction * (points[currIndex + 1].lng - points[currIndex].lng);
-        sampled.add(LatLngNode(tLat, tLng));
+      double distBetween =
+          cumulativeDist[currIndex + 1] - cumulativeDist[currIndex];
+      double fraction = distBetween == 0
+          ? 0
+          : (targetDist - cumulativeDist[currIndex]) / distBetween;
+
+      double tLat =
+          points[currIndex].lat +
+          fraction * (points[currIndex + 1].lat - points[currIndex].lat);
+      double tLng =
+          points[currIndex].lng +
+          fraction * (points[currIndex + 1].lng - points[currIndex].lng);
+      sampled.add(LatLngNode(tLat, tLng));
     }
 
     sampled.add(points.last);
@@ -86,99 +97,115 @@ class CalculationEngine {
 
   /// Calculates bearing from pt1 to pt2 in degrees (0 = North, 90 = East)
   static double _calculateBearing(LatLngNode pt1, LatLngNode pt2) {
-      double lat1 = _toRadians(pt1.lat);
-      double lng1 = _toRadians(pt1.lng);
-      double lat2 = _toRadians(pt2.lat);
-      double lng2 = _toRadians(pt2.lng);
+    double lat1 = _toRadians(pt1.lat);
+    double lng1 = _toRadians(pt1.lng);
+    double lat2 = _toRadians(pt2.lat);
+    double lng2 = _toRadians(pt2.lng);
 
-      double dLon = lng2 - lng1;
+    double dLon = lng2 - lng1;
 
-      double y = math.sin(dLon) * math.cos(lat2);
-      double x = math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(dLon);
+    double y = math.sin(dLon) * math.cos(lat2);
+    double x =
+        math.cos(lat1) * math.sin(lat2) -
+        math.sin(lat1) * math.cos(lat2) * math.cos(dLon);
 
-      double bearing = math.atan2(y, x);
-      bearing = _toDegrees(bearing);
-      return (bearing + 360.0) % 360.0;
+    double bearing = math.atan2(y, x);
+    bearing = _toDegrees(bearing);
+    return (bearing + 360.0) % 360.0;
   }
 
   /// Converts decimal degrees to radians
   static double _toRadians(double degrees) {
-      return degrees * math.pi / 180.0;
+    return degrees * math.pi / 180.0;
   }
 
   /// Converts radians to decimal degrees
   static double _toDegrees(double radians) {
-      return radians * 180.0 / math.pi;
+    return radians * 180.0 / math.pi;
   }
 
   /// Haversine distance in KM
   static double _haversine(LatLngNode pt1, LatLngNode pt2) {
-      const double R = 6371.0; 
-      double dLat = _toRadians(pt2.lat - pt1.lat);
-      double dLon = _toRadians(pt2.lng - pt1.lng);
+    const double R = 6371.0;
+    double dLat = _toRadians(pt2.lat - pt1.lat);
+    double dLon = _toRadians(pt2.lng - pt1.lng);
 
-      double a = math.sin(dLat / 2) * math.sin(dLat / 2) +
-                 math.cos(_toRadians(pt1.lat)) * math.cos(_toRadians(pt2.lat)) *
-                 math.sin(dLon / 2) * math.sin(dLon / 2);
-      double c = 2 * math.asin(math.sqrt(a));
-      return R * c;
+    double a =
+        math.sin(dLat / 2) * math.sin(dLat / 2) +
+        math.cos(_toRadians(pt1.lat)) *
+            math.cos(_toRadians(pt2.lat)) *
+            math.sin(dLon / 2) *
+            math.sin(dLon / 2);
+    double c = 2 * math.asin(math.sqrt(a));
+    return R * c;
   }
 
   /// Calculates which side is shadiest
-  static ShadeResult calculateShade(List<LatLngNode> path, DateTime journeyTime) {
-      // Create sampled points along path
-      final sampled = samplePoints(path, numPoints: 100);
+  static ShadeResult calculateShade(
+    List<LatLngNode> path,
+    DateTime journeyTime,
+  ) {
+    // Create sampled points along path
+    final sampled = samplePoints(path, numPoints: 100);
 
-      int leftHits = 0;
-      int rightHits = 0;
+    int leftHits = 0;
+    int rightHits = 0;
 
-      for (int i = 0; i < sampled.length - 1; i++) {
-          LatLngNode pt1 = sampled[i];
-          LatLngNode pt2 = sampled[i+1];
+    for (int i = 0; i < sampled.length - 1; i++) {
+      LatLngNode pt1 = sampled[i];
+      LatLngNode pt2 = sampled[i + 1];
 
-          double bearing = _calculateBearing(pt1, pt2);
-          
-          // Calculate sun azimuth position
-          double sunAzimuth = _calculateSunAzimuth(journeyTime, pt1.lat, pt1.lng);
+      double bearing = _calculateBearing(pt1, pt2);
 
-          // Compute angle diff: bearing -> sunAzimuth clockwise
-          double diff = (sunAzimuth - bearing + 360.0) % 360.0;
+      // Calculate sun azimuth position
+      double sunAzimuth = _calculateSunAzimuth(journeyTime, pt1.lat, pt1.lng);
 
-          // if diff is between 0 and 180, sun is on the RIGHT side.
-          if (diff > 0 && diff < 180) {
-              rightHits++;
-          } else {
-              leftHits++;
-          }
+      // Compute angle diff: bearing -> sunAzimuth clockwise
+      double diff = (sunAzimuth - bearing + 360.0) % 360.0;
+
+      // if diff is between 0 and 180, sun is on the RIGHT side.
+      if (diff > 0 && diff < 180) {
+        rightHits++;
+      } else {
+        leftHits++;
       }
+    }
 
-      int total = rightHits + leftHits;
-      if (total == 0) return ShadeResult(isLeftShady: true, shadyPercentage: 50);
+    int total = rightHits + leftHits;
+    if (total == 0) return ShadeResult(isLeftShady: true, shadyPercentage: 50);
 
-      // The SHADY side is the OPPOSITE of where the sun is hitting.
-      // So if rightHits > leftHits, the sun is mostly hitting the right. 
-      // Ergo, the left side is shady!
-      bool isLeftShady = rightHits >= leftHits;
-      int percentage = ((isLeftShady ? rightHits : leftHits) / total * 100).round();
+    // The SHADY side is the OPPOSITE of where the sun is hitting.
+    // So if rightHits > leftHits, the sun is mostly hitting the right.
+    // Ergo, the left side is shady!
+    bool isLeftShady = rightHits >= leftHits;
+    int percentage = ((isLeftShady ? rightHits : leftHits) / total * 100)
+        .round();
 
-      return ShadeResult(isLeftShady: isLeftShady, shadyPercentage: percentage);
+    return ShadeResult(isLeftShady: isLeftShady, shadyPercentage: percentage);
   }
 
   /// Calculates the sun's azimuth in degrees (0=North, 90=East, 180=South, 270=West)
   /// Based on simplified solar position algorithm
-  static double _calculateSunAzimuth(DateTime dateTime, double latitude, double longitude) {
+  static double _calculateSunAzimuth(
+    DateTime dateTime,
+    double latitude,
+    double longitude,
+  ) {
     // Convert to UTC if needed (assuming input is in local time UTC+5:30)
     // Adjust to UTC
     final int offsetHours = 5;
     final int offsetMinutes = 30;
-    final DateTime utcTime = dateTime.subtract(Duration(hours: offsetHours, minutes: offsetMinutes));
+    final DateTime utcTime = dateTime.subtract(
+      Duration(hours: offsetHours, minutes: offsetMinutes),
+    );
 
     // Calculate Julian Day Number
     int year = utcTime.year;
     int month = utcTime.month;
     int day = utcTime.day;
 
-    double jd = 367 * year -
+    double jd =
+        367 * year -
         (7 * (year + (month + 9) ~/ 12) ~/ 4) -
         (3 * ((year + (month - 9) ~/ 7) ~/ 100 + 1) ~/ 4) +
         (275 * month ~/ 9) +
@@ -190,16 +217,12 @@ class CalculationEngine {
     double T = (jd - 2451545.0) / 36525.0;
 
     // Calculate sun's mean longitude (degrees)
-    double l0 = 280.46646 +
-        (36000.76983 * T) +
-        (0.0003032 * T * T);
+    double l0 = 280.46646 + (36000.76983 * T) + (0.0003032 * T * T);
     l0 = l0 % 360.0;
     if (l0 < 0) l0 += 360.0;
 
     // Calculate sun's mean anomaly (degrees)
-    double m = 357.52911 +
-        (35999.05029 * T) -
-        (0.0001536 * T * T);
+    double m = 357.52911 + (35999.05029 * T) - (0.0001536 * T * T);
     m = m % 360.0;
     if (m < 0) m += 360.0;
 
@@ -207,7 +230,8 @@ class CalculationEngine {
     double mRad = _toRadians(m);
 
     // Calculate sun's equation of center
-    double c = (1.914602 - (0.004817 * T) - (0.000014 * T * T)) * math.sin(mRad) +
+    double c =
+        (1.914602 - (0.004817 * T) - (0.000014 * T * T)) * math.sin(mRad) +
         (0.019993 - (0.000101 * T)) * math.sin(2 * mRad) +
         0.000029 * math.sin(3 * mRad);
 
@@ -222,7 +246,11 @@ class CalculationEngine {
     if (appLongitude < 0) appLongitude += 360.0;
 
     // Calculate obliquity of ecliptic
-    double epsilon0 = 23.439291 - (0.0130042 * T) - (0.00000016 * T * T) + (0.000000504 * T * T * T);
+    double epsilon0 =
+        23.439291 -
+        (0.0130042 * T) -
+        (0.00000016 * T * T) +
+        (0.000000504 * T * T * T);
 
     // Correct for nutation
     double n = 125.04 - (1934.136 * T);
@@ -243,7 +271,11 @@ class CalculationEngine {
     declination = _toDegrees(declination);
 
     // Calculate Greenwich Mean Sidereal Time
-    double gmst = 18.697374558 + (24.0657146556 * T) + (0.0000387933 * T * T) - (T * T * T / 38710000.0);
+    double gmst =
+        18.697374558 +
+        (24.0657146556 * T) +
+        (0.0000387933 * T * T) -
+        (T * T * T / 38710000.0);
     gmst = gmst % 24.0;
     if (gmst < 0) gmst += 24.0;
 
@@ -263,19 +295,23 @@ class CalculationEngine {
     double declinationRad = _toRadians(declination);
 
     // Calculate altitude
-    double sinAlt = math.sin(latRad) * math.sin(declinationRad) +
+    double sinAlt =
+        math.sin(latRad) * math.sin(declinationRad) +
         math.cos(latRad) * math.cos(declinationRad) * math.cos(haRad);
     double altitude = math.asin(sinAlt);
 
     // Calculate azimuth
-    double cosAz = (math.sin(declinationRad) - math.sin(altitude) * math.sin(latRad)) /
+    double cosAz =
+        (math.sin(declinationRad) - math.sin(altitude) * math.sin(latRad)) /
         (math.cos(altitude) * math.cos(latRad));
-    double sinAz = -math.sin(haRad) * math.cos(declinationRad) / math.cos(altitude);
+    double sinAz =
+        -math.sin(haRad) * math.cos(declinationRad) / math.cos(altitude);
 
     // Azimuth from south, convert to compass azimuth (0=North, 90=East, etc.)
     double azimuth = math.atan2(sinAz, cosAz);
     azimuth = _toDegrees(azimuth);
-    azimuth = (azimuth + 180.0) % 360.0; // Convert from south-based to north-based
+    azimuth =
+        (azimuth + 180.0) % 360.0; // Convert from south-based to north-based
     if (azimuth < 0) azimuth += 360.0;
 
     return azimuth;

@@ -46,8 +46,9 @@ class JourneyFormState extends ChangeNotifier {
   }
 
   bool get isValid {
-    return _startLocation.trim().isNotEmpty && 
-           _endLocation.trim().isNotEmpty && 
-           _startLocation.trim().toLowerCase() != _endLocation.trim().toLowerCase();
+    return _startLocation.trim().isNotEmpty &&
+        _endLocation.trim().isNotEmpty &&
+        _startLocation.trim().toLowerCase() !=
+            _endLocation.trim().toLowerCase();
   }
 }
