@@ -111,6 +111,7 @@ class _JourneyInputFormState extends State<JourneyInputForm> {
               '${formState.startLocation} → ${formState.endLocation} • ${formState.transitMode} • ${primaryRoute.distance}',
           explanation: explanation,
           routePoints: pathPoints,
+          routeSegments: shadeResult.segments,
           alternateRoutesPoints: alternates,
         ),
       );
