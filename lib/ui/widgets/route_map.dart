@@ -232,13 +232,13 @@ final routePoints = state.resultData!.routePoints
         ? <SegmentShade>[]
         : List<SegmentShade>.from(rawSegments);
 
-    if (segments.isEmpty && routePoints.isNotEmpty) {
-      // Fallback if segments fail to generate or from hot reload memory state
+    if ((segments.isEmpty || state.resultData!.isNight) && routePoints.isNotEmpty) {
+      // Fallback if night time or segments fail to generate  
       polylines.add(
         Polyline(
           polylineId: const PolylineId('route_primary_fallback'),
           points: routePoints,
-          color: Colors.blue,
+          color: Colors.blueGrey, // Use a neutral color for night time
           width: 6,
           zIndex: 2,
         ),

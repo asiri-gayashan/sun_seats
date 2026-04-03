@@ -8,6 +8,7 @@ class MockResultData {
   final int shadyPercentage;
   final String journeySummary;
   final String explanation;
+  final bool isNight;
   final List<LatLngNode> routePoints;
   final List<SegmentShade> routeSegments;
   final List<List<LatLngNode>> alternateRoutesPoints;
@@ -17,6 +18,7 @@ class MockResultData {
     required this.shadyPercentage,
     required this.journeySummary,
     required this.explanation,
+    this.isNight = false,
     required this.routePoints,
     required this.routeSegments,
     this.alternateRoutesPoints = const [],

@@ -106,6 +106,10 @@ class ResultPanel extends StatelessWidget {
     final data = state.resultData;
     if (data == null) return const SizedBox();
 
+    if (data.isNight) {
+      return _buildNightState(context, data);
+    }
+
     bool isLeft = data.isLeftShady;
     return Column(
       key: const ValueKey('success'),
@@ -169,6 +173,132 @@ class ResultPanel extends StatelessWidget {
               color: AppTheme.darkText,
               decoration: TextDecoration.underline,
             ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNightState(BuildContext context, MockResultData data) {
+    return Column(
+      key: const ValueKey('success_night'),
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const SizedBox(height: 16),
+        Container(
+          width: 90,
+          height: 90,
+          decoration: const BoxDecoration(
+            color: Color(0xFFFFCCAA),
+            shape: BoxShape.circle,
+          ),
+          child: const Center(
+            child: Icon(Icons.nightlight_outlined, size: 50, color: Color(0xFF6B4226)),
+          ),
+        ),
+        const SizedBox(height: 24),
+        const Text(
+          "It's Night Time!",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 24,
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w500,
+            color: AppTheme.darkText,
+          ),
+        ),
+        const SizedBox(height: 16),
+        const Text(
+          "No need to worry about the sun \u2014 the sky's on your side tonight.",
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 16, color: AppTheme.darkText),
+        ),
+        const SizedBox(height: 16),
+        const Text(
+          "Enjoy the moonlight, the cool air, and a quieter journey.",
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 14, color: AppTheme.midGray),
+        ),
+        const SizedBox(height: 32),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF3F5EF),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Text(
+                'Night Travel Tips',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w400,
+                  color: AppTheme.darkText,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildBullet("Wear bright or reflective clothing to stay visible"),
+              const SizedBox(height: 10),
+              _buildBullet("Keep your phone charged and carry a power bank"),
+              const SizedBox(height: 10),
+              _buildBullet("Consider a travel buddy if the route feels long or remote"),
+              const SizedBox(height: 10),
+              _buildBullet("Pack a light snack \u2014 late-night hunger hits different \uD83E\uDD29"),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Got a suggestion or found something off? ',
+              style: TextStyle(color: AppTheme.midGray, fontSize: 13),
+            ),
+            InkWell(
+              onTap: () {
+                // Implement report/suggestion action
+              },
+              child: const Text(
+                'Let us know',
+                style: TextStyle(
+                  color: AppTheme.primaryGreen,
+                  fontSize: 13,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        TextButton(
+          onPressed: () => _handleTryAgain(context),
+          child: const Text(
+            'Try another journey',
+            style: TextStyle(
+              color: AppTheme.darkText,
+              decoration: TextDecoration.underline,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBullet(String text) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(top: 6.0, right: 10.0),
+          child: Icon(Icons.circle, size: 4, color: AppTheme.darkText),
+        ),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(fontSize: 14, color: AppTheme.darkText),
           ),
         ),
       ],

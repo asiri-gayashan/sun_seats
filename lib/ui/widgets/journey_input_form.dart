@@ -99,6 +99,8 @@ class _JourneyInputFormState extends State<JourneyInputForm> {
         journeyDt,
       );
 
+      bool isNight = journeyDt.hour >= 18 || journeyDt.hour < 6;
+
       String explanation = shadeResult.isLeftShady
           ? 'The sun will mostly hit the right side. Sit on the left for shade.'
           : 'The sun will mostly hit the left side. Sit on the right for shade.';
@@ -108,8 +110,9 @@ class _JourneyInputFormState extends State<JourneyInputForm> {
           isLeftShady: shadeResult.isLeftShady,
           shadyPercentage: shadeResult.shadyPercentage,
           journeySummary:
-              '${formState.startLocation} → ${formState.endLocation} • ${formState.transitMode} • ${primaryRoute.distance}',
+              '${formState.startLocation} \u2192 ${formState.endLocation} \u2022 ${formState.transitMode} \u2022 ${primaryRoute.distance}',
           explanation: explanation,
+          isNight: isNight,
           routePoints: pathPoints,
           routeSegments: shadeResult.segments,
           alternateRoutesPoints: alternates,
