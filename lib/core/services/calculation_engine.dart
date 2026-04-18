@@ -70,6 +70,14 @@ class CalculationEngine {
     if (points.isEmpty) return [];
     if (points.length == 1) return points;
 
+    if (points.length >= numPoints) {
+      // index-based even sampling is more reliable for short polylines
+      return List.generate(numPoints, (i) {
+        int idx = (i * (points.length - 1) ~/ (numPoints - 1)).clamp(0, points.length - 1);
+        return points[idx];
+      });
+    }
+
     double totalDist = 0;
     List<double> cumulativeDist = [0.0];
     for (int i = 0; i < points.length - 1; i++) {
@@ -160,10 +168,14 @@ class CalculationEngine {
   /// Calculates which side is shadiest
   static ShadeResult calculateShade(
     List<LatLngNode> path,
-    DateTime journeyTime,
-  ) {
+    DateTime journeyTime, [
+    int utcOffsetMinutes = 330,
+  ]) {
     // Create sampled points along path
     final sampled = samplePoints(path, numPoints: 100);
+
+    double speedKmH = 50.0;
+    double distSoFar = 0.0;
 
     int leftHits = 0;
     int rightHits = 0;
@@ -172,10 +184,16 @@ class CalculationEngine {
       LatLngNode pt1 = sampled[i];
       LatLngNode pt2 = sampled[i + 1];
 
+      double dist = _haversine(pt1, pt2);
+      double hoursElapsed = distSoFar / speedKmH;
+      DateTime pointTime = journeyTime.add(
+        Duration(minutes: (hoursElapsed * 60).round()),
+      );
+
       double bearing = _calculateBearing(pt1, pt2);
 
       // Calculate sun azimuth position
-      double sunAzimuth = _calculateSunAzimuth(journeyTime, pt1.lat, pt1.lng);
+      double sunAzimuth = _calculateSunAzimuth(pointTime, pt1.lat, pt1.lng, utcOffsetMinutes);
 
       // Compute angle diff: bearing -> sunAzimuth clockwise
       double diff = (sunAzimuth - bearing + 360.0) % 360.0;
@@ -186,6 +204,8 @@ class CalculationEngine {
       } else {
         leftHits++;
       }
+
+      distSoFar += dist;
     }
 
     int total = rightHits + leftHits;
@@ -195,16 +215,24 @@ class CalculationEngine {
 
     // Generate segment shades for the actual path to render uncompressed on map
     List<SegmentShade> segments = [];
+    distSoFar = 0.0;
     for (int i = 0; i < path.length - 1; i++) {
       LatLngNode p1 = path[i];
       LatLngNode p2 = path[i + 1];
 
+      double dist = _haversine(p1, p2);
+      double hoursElapsed = distSoFar / speedKmH;
+      DateTime pointTime = journeyTime.add(
+        Duration(minutes: (hoursElapsed * 60).round()),
+      );
+
       double b = _calculateBearing(p1, p2);
-      double az = _calculateSunAzimuth(journeyTime, p1.lat, p1.lng);
+      double az = _calculateSunAzimuth(pointTime, p1.lat, p1.lng, utcOffsetMinutes);
       double d = (az - b + 360.0) % 360.0;
       bool sunOnRight = (d > 0 && d < 180);
 
       segments.add(SegmentShade(pt1: p1, pt2: p2, isSunOnRight: sunOnRight));
+      distSoFar += dist;
     }
 
     // The SHADY side is the OPPOSITE of where the sun is hitting.
@@ -227,27 +255,26 @@ class CalculationEngine {
     DateTime dateTime,
     double latitude,
     double longitude,
+    int utcOffsetMinutes,
   ) {
-    // Convert to UTC if needed (assuming input is in local time UTC+5:30)
-    // Adjust to UTC
-    final int offsetHours = 5;
-    final int offsetMinutes = 30;
+    // Adjust to UTC using the provided offset
     final DateTime utcTime = dateTime.subtract(
-      Duration(hours: offsetHours, minutes: offsetMinutes),
+      Duration(minutes: utcOffsetMinutes),
     );
 
     // Calculate Julian Day Number
-    int year = utcTime.year;
-    int month = utcTime.month;
-    int day = utcTime.day;
-
-    double jd =
-        367 * year -
-        (7 * (year + (month + 9) ~/ 12) ~/ 4) -
-        (3 * ((year + (month - 9) ~/ 7) ~/ 100 + 1) ~/ 4) +
-        (275 * month ~/ 9) +
-        day +
-        1721028.5 +
+    int y = utcTime.year;
+    int m = utcTime.month;
+    int d = utcTime.day;
+    if (m <= 2) {
+      y -= 1;
+      m += 12;
+    }
+    int A = y ~/ 100;
+    int B = 2 - A + A ~/ 4;
+    double jd = (365.25 * (y + 4716)).floor() +
+        (30.6001 * (m + 1)).floor() +
+        d + B - 1524.5 +
         (utcTime.hour + utcTime.minute / 60.0 + utcTime.second / 3600.0) / 24.0;
 
     // Calculate T (Julian Centuries from J2000)
@@ -259,12 +286,12 @@ class CalculationEngine {
     if (l0 < 0) l0 += 360.0;
 
     // Calculate sun's mean anomaly (degrees)
-    double m = 357.52911 + (35999.05029 * T) - (0.0001536 * T * T);
-    m = m % 360.0;
-    if (m < 0) m += 360.0;
+    double mAnomaly = 357.52911 + (35999.05029 * T) - (0.0001536 * T * T);
+    mAnomaly = mAnomaly % 360.0;
+    if (mAnomaly < 0) mAnomaly += 360.0;
 
     // Convert to radians for calculation
-    double mRad = _toRadians(m);
+    double mRad = _toRadians(mAnomaly);
 
     // Calculate sun's equation of center
     double c =
@@ -297,9 +324,9 @@ class CalculationEngine {
     double epsilonRad = _toRadians(epsilon);
     double appLongRad = _toRadians(appLongitude);
 
-    double y = math.cos(epsilonRad) * math.sin(appLongRad);
-    double x = math.cos(appLongRad);
-    double rightAscension = math.atan2(y, x);
+    double yVal = math.cos(epsilonRad) * math.sin(appLongRad);
+    double xVal = math.cos(appLongRad);
+    double rightAscension = math.atan2(yVal, xVal);
     rightAscension = _toDegrees(rightAscension);
     rightAscension = rightAscension % 360.0;
     if (rightAscension < 0) rightAscension += 360.0;
@@ -308,21 +335,16 @@ class CalculationEngine {
     declination = _toDegrees(declination);
 
     // Calculate Greenwich Mean Sidereal Time
-    double gmst =
-        18.697374558 +
-        (24.0657146556 * T) +
-        (0.0000387933 * T * T) -
-        (T * T * T / 38710000.0);
-    gmst = gmst % 24.0;
-    if (gmst < 0) gmst += 24.0;
+    double jdDiff = jd - 2451545.0;
+    double gmstDeg = 280.46061837 + 360.98564736629 * jdDiff;
+    gmstDeg = gmstDeg % 360.0;
+    if (gmstDeg < 0) gmstDeg += 360.0;
 
     // Calculate Local Sidereal Time
-    double lst = gmst + longitude / 15.0;
-    lst = lst % 24.0;
-    if (lst < 0) lst += 24.0;
+    double lst = (gmstDeg + longitude) % 360.0;
 
     // Calculate Hour Angle
-    double ha = (lst * 15.0) - rightAscension;
+    double ha = lst - rightAscension;
     ha = ha % 360.0;
     if (ha > 180) ha = ha - 360.0;
 
