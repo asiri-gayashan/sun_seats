@@ -81,15 +81,12 @@ class _JourneyInputFormState extends State<JourneyInputForm> {
 
       if (routesData.isEmpty) throw 'No routes found.';
       final primaryRoute = routesData[0];
-      final pathPoints = CalculationEngine.decodePolyline(
-        primaryRoute.polyline,
-      );
+      
+      final List<LatLngNode> pathPoints = CalculationEngine.decodePolyline(primaryRoute.mergedPolyline);
 
       List<List<LatLngNode>> alternates = [];
       for (int i = 1; i < routesData.length; i++) {
-        alternates.add(
-          CalculationEngine.decodePolyline(routesData[i].polyline),
-        );
+        alternates.add(CalculationEngine.decodePolyline(routesData[i].mergedPolyline));
       }
 
       if (pathPoints.isEmpty) throw 'Route could not be decoded.';
@@ -99,17 +96,23 @@ class _JourneyInputFormState extends State<JourneyInputForm> {
         journeyDt,
       );
 
+      bool isNight = journeyDt.hour >= 18 || journeyDt.hour < 6;
+
       String explanation = shadeResult.isLeftShady
-          ? 'The sun will mostly hit the right side. Sit on the left for shade.'
-          : 'The sun will mostly hit the left side. Sit on the right for shade.';
+          ? 'The sun will mostly hit the left side. Sit on the right for shade.'
+          : 'The sun will mostly hit the right side. Sit on the left for shade.';
 
       resultState.setSuccess(
         MockResultData(
           isLeftShady: shadeResult.isLeftShady,
           shadyPercentage: shadeResult.shadyPercentage,
+          sunLeftPercentage: shadeResult.sunLeftPercentage,
+          sunRightPercentage: shadeResult.sunRightPercentage,
+          noSunPercentage: shadeResult.noSunPercentage,
           journeySummary:
-              '${formState.startLocation} → ${formState.endLocation} • ${formState.transitMode} • ${primaryRoute.distance}',
+              '${formState.startLocation} \u2192 ${formState.endLocation} \u2022 ${formState.transitMode} \u2022 ${primaryRoute.distance}',
           explanation: explanation,
+          isNight: isNight,
           routePoints: pathPoints,
           routeSegments: shadeResult.segments,
           alternateRoutesPoints: alternates,
