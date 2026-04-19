@@ -127,7 +127,7 @@ class ResultPanel extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
-            isLeft ? 'SIT LEFT' : 'SIT RIGHT',
+            isLeft ? 'SIT RIGHT' : 'SIT LEFT',
             style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,

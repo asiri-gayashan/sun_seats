@@ -6,6 +6,9 @@ enum ResultPanelState { empty, loading, success, error }
 class MockResultData {
   final bool isLeftShady;
   final int shadyPercentage;
+  final double sunLeftPercentage;
+  final double sunRightPercentage;
+  final double noSunPercentage;
   final String journeySummary;
   final String explanation;
   final bool isNight;
@@ -16,6 +19,9 @@ class MockResultData {
   MockResultData({
     required this.isLeftShady,
     required this.shadyPercentage,
+    required this.sunLeftPercentage,
+    required this.sunRightPercentage,
+    required this.noSunPercentage,
     required this.journeySummary,
     required this.explanation,
     this.isNight = false,

@@ -117,6 +117,9 @@ class _RouteMapState extends State<RouteMap> {
   }
 
   void _openFullscreen(BuildContext context, Set<Polyline> polylines) {
+    final state = context.read<ResultState>();
+    final data = state.resultData;
+
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => Scaffold(
@@ -126,20 +129,77 @@ class _RouteMapState extends State<RouteMap> {
             elevation: 0,
             iconTheme: const IconThemeData(color: Colors.white),
           ),
-          body: GoogleMap(
-            style: _darkMapStyle,
-            initialCameraPosition: const CameraPosition(
-              target: LatLng(7.8731, 80.7718),
-              zoom: 7.0,
-            ),
-            polylines: polylines,
-            myLocationEnabled: true,
-            zoomControlsEnabled: true,
-            mapToolbarEnabled: false,
-            compassEnabled: true,
-            onMapCreated: (GoogleMapController controller) {
-              _fitRouteWithController(controller);
-            },
+          body: Stack(
+            children: [
+              GoogleMap(
+                style: _darkMapStyle,
+                initialCameraPosition: const CameraPosition(
+                  target: LatLng(7.8731, 80.7718),
+                  zoom: 7.0,
+                ),
+                polylines: polylines,
+                myLocationEnabled: true,
+                zoomControlsEnabled: true,
+                mapToolbarEnabled: false,
+                compassEnabled: true,
+                onMapCreated: (GoogleMapController controller) {
+                  _fitRouteWithController(controller);
+                },
+              ),
+              if (data != null && !data.isNight)
+                Positioned(
+                  top: 100,
+                  left: 20,
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1C1C1C).withValues(alpha: 0.95),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: Colors.white10),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Sun Exposure Data',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        Text(
+                          'Sun Right: ${data.sunLeftPercentage.toStringAsFixed(2)}%',
+                          style: const TextStyle(
+                            color: Color(0xFFFFA500),
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Sun Left: ${data.sunRightPercentage.toStringAsFixed(2)}%',
+                          style: const TextStyle(
+                            color: Colors.blue,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'No Sun: ${data.noSunPercentage.toStringAsFixed(2)}%',
+                          style: const TextStyle(
+                            color: Color(0xFF888888),
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
       ),
@@ -226,7 +286,6 @@ final routePoints = state.resultData!.routePoints
         .toList();
 
     // Draw primary route based on sun hit segments
-    bool isLeftRecommended = state.resultData!.isLeftShady;
     final dynamic rawSegments = state.resultData!.routeSegments;
     final List<SegmentShade> segments = rawSegments == null
         ? <SegmentShade>[]
@@ -245,43 +304,39 @@ final routePoints = state.resultData!.routePoints
       );
     } else {
       List<LatLng> currentPath = [];
-      bool? currentIsShady;
+      bool? currentSunOnRight;
       int polylineIndex = 0;
 
       for (var seg in segments) {
-        bool isSegmentShadyForRecommended = isLeftRecommended
-            ? seg.isSunOnRight
-            : !seg.isSunOnRight;
-
-        if (currentIsShady == null) {
-          currentIsShady = isSegmentShadyForRecommended;
+        if (currentSunOnRight == null) {
+          currentSunOnRight = seg.isSunOnRight;
           currentPath.add(LatLng(seg.pt1.lat, seg.pt1.lng));
-        } else if (currentIsShady != isSegmentShadyForRecommended) {
+        } else if (currentSunOnRight != seg.isSunOnRight) {
           currentPath.add(LatLng(seg.pt1.lat, seg.pt1.lng));
 
           polylines.add(
             Polyline(
               polylineId: PolylineId('route_primary_$polylineIndex'),
               points: List.from(currentPath),
-              color: currentIsShady ? Colors.blue : Colors.orange,
+              color: currentSunOnRight ? Colors.blue : Colors.orange,
               width: 6,
               zIndex: 2,
             ),
           );
 
           currentPath = [LatLng(seg.pt1.lat, seg.pt1.lng)];
-          currentIsShady = isSegmentShadyForRecommended;
+          currentSunOnRight = seg.isSunOnRight;
           polylineIndex++;
         }
         currentPath.add(LatLng(seg.pt2.lat, seg.pt2.lng));
       }
 
-      if (currentPath.isNotEmpty && currentIsShady != null) {
+      if (currentPath.isNotEmpty && currentSunOnRight != null) {
         polylines.add(
           Polyline(
             polylineId: PolylineId('route_primary_$polylineIndex'),
             points: currentPath,
-            color: currentIsShady ? Colors.blue : Colors.orange,
+            color: currentSunOnRight ? Colors.blue : Colors.orange,
             width: 6,
             zIndex: 2,
           ),
