@@ -305,20 +305,27 @@ final routePoints = state.resultData!.routePoints
     } else {
       List<LatLng> currentPath = [];
       bool? currentSunOnRight;
+      bool? currentNoSun;
       int polylineIndex = 0;
 
+      Color getColor(bool sunOnRight, bool noSun) {
+        if (noSun) return const Color(0xFF888888);
+        return sunOnRight ? Colors.blue : Colors.orange;
+      }
+
       for (var seg in segments) {
-        if (currentSunOnRight == null) {
+        if (currentSunOnRight == null || currentNoSun == null) {
           currentSunOnRight = seg.isSunOnRight;
+          currentNoSun = seg.isNoSun;
           currentPath.add(LatLng(seg.pt1.lat, seg.pt1.lng));
-        } else if (currentSunOnRight != seg.isSunOnRight) {
+        } else if (currentSunOnRight != seg.isSunOnRight || currentNoSun != seg.isNoSun) {
           currentPath.add(LatLng(seg.pt1.lat, seg.pt1.lng));
 
           polylines.add(
             Polyline(
               polylineId: PolylineId('route_primary_$polylineIndex'),
               points: List.from(currentPath),
-              color: currentSunOnRight ? Colors.blue : Colors.orange,
+              color: getColor(currentSunOnRight, currentNoSun),
               width: 6,
               zIndex: 2,
             ),
@@ -326,17 +333,18 @@ final routePoints = state.resultData!.routePoints
 
           currentPath = [LatLng(seg.pt1.lat, seg.pt1.lng)];
           currentSunOnRight = seg.isSunOnRight;
+          currentNoSun = seg.isNoSun;
           polylineIndex++;
         }
         currentPath.add(LatLng(seg.pt2.lat, seg.pt2.lng));
       }
 
-      if (currentPath.isNotEmpty && currentSunOnRight != null) {
+      if (currentPath.isNotEmpty && currentSunOnRight != null && currentNoSun != null) {
         polylines.add(
           Polyline(
             polylineId: PolylineId('route_primary_$polylineIndex'),
             points: currentPath,
-            color: currentSunOnRight ? Colors.blue : Colors.orange,
+            color: getColor(currentSunOnRight, currentNoSun),
             width: 6,
             zIndex: 2,
           ),

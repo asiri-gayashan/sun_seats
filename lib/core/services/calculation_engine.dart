@@ -10,11 +10,13 @@ class SegmentShade {
   final LatLngNode pt1;
   final LatLngNode pt2;
   final bool isSunOnRight;
+  final bool isNoSun;
 
   SegmentShade({
     required this.pt1,
     required this.pt2,
     required this.isSunOnRight,
+    this.isNoSun = false,
   });
 }
 
@@ -252,12 +254,15 @@ class CalculationEngine {
       Map<String, double> pos = _calculateSunPosition(pointTime, p1.lat, p1.lng, utcOffsetMinutes);
       
       bool sunOnRight = false;
+      bool noSun = false;
       if (pos['altitude']! >= 0) {
         double d = (pos['azimuth']! - b + 360.0) % 360.0;
         sunOnRight = (d > 0 && d < 180);
+      } else {
+        noSun = true;
       }
 
-      segments.add(SegmentShade(pt1: p1, pt2: p2, isSunOnRight: sunOnRight));
+      segments.add(SegmentShade(pt1: p1, pt2: p2, isSunOnRight: sunOnRight, isNoSun: noSun));
       distSoFar += dist;
     }
 
