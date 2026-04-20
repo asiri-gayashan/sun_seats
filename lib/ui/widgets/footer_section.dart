@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
 import '../screens/about_screen.dart';
 
@@ -22,13 +23,12 @@ class FooterSection extends StatelessWidget {
           runSpacing: 16,
           children: [
             const Text(
-              '© 2026 SunSeat • Built for Sri Lanka',
+              '© 2026 SunSeat • Sri Lanka',
               style: TextStyle(fontSize: 12, color: AppTheme.darkText),
             ),
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _FooterLink('Privacy Policy', onTap: () {}),
                 const SizedBox(width: 16),
                 _FooterLink(
                   'About',
@@ -39,7 +39,12 @@ class FooterSection extends StatelessWidget {
                   },
                 ),
                 const SizedBox(width: 16),
-                _FooterLink('Contact', onTap: () {}),
+                _FooterLink('Contact', onTap: () async {
+                  final uri = Uri.parse('https://asirigayashan.bio.link/');
+                  if (await canLaunchUrl(uri)) {
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  }
+                }),
               ],
             ),
           ],
