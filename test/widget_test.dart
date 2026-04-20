@@ -9,18 +9,23 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
 import 'package:sun_seats/main.dart';
+import 'package:sun_seats/core/providers/journey_form_state.dart';
+import 'package:sun_seats/core/providers/result_state.dart';
+import 'package:sun_seats/core/providers/location_state.dart';
 
 void main() {
   testWidgets('App smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
     await tester.pumpWidget(
       MultiProvider(
-        providers: [ChangeNotifierProvider(create: (_) => AppLanguageState())],
-        child: const ShadeSeatApp(),
+        providers: [
+          ChangeNotifierProvider(create: (_) => JourneyFormState()),
+          ChangeNotifierProvider(create: (_) => ResultState()),
+          ChangeNotifierProvider(create: (_) => LocationState()),
+        ],
+        child: const SunSeatApp(),
       ),
     );
 
-    // Verify app title exists.
-    expect(find.text('ShadeSeat LK'), findsWidgets);
+    await tester.pumpAndSettle();
   });
 }

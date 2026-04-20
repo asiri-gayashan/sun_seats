@@ -177,14 +177,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.3"
-  dart_suncalc:
-    dependency: "direct main"
-    description:
-      name: dart_suncalc
-      sha256: d36b0f1abb64439f44846586d380e77dcaaf327feb3e9a9ce3faa52edb21b404
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.1"
   dbus:
     dependency: transitive
     description:
@@ -238,11 +230,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.0.0"
-  flutter_localizations:
-    dependency: "direct main"
-    description: flutter
-    source: sdk
-    version: "0.0.0"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:

@@ -307,7 +307,7 @@ class ResultPanel extends StatelessWidget {
 
   Future<void> _handleShare(BuildContext context, data) async {
     final text =
-        '${data.journeySummary}: SIT ${data.isLeftShady ? 'LEFT' : 'RIGHT'} for shade! 🌞 #ShadeSeatLK';
+        '${data.journeySummary}: SIT ${data.isLeftShady ? 'LEFT' : 'RIGHT'} for shade! 🌞 #SunSeat';
 
     try {
       // Try to use the native share sheet via url_launcher if available

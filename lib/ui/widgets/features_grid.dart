@@ -14,7 +14,7 @@ class FeaturesGrid extends StatelessWidget {
         child: Column(
           children: [
             Text(
-              'Why use ShadeSeat LK?',
+              'Why use SunSeat?',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             const SizedBox(height: 32),

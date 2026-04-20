@@ -22,7 +22,7 @@ class FooterSection extends StatelessWidget {
           runSpacing: 16,
           children: [
             const Text(
-              '© 2026 ShadeSeat LK • Built for Sri Lanka',
+              '© 2026 SunSeat • Built for Sri Lanka',
               style: TextStyle(fontSize: 12, color: AppTheme.darkText),
             ),
             Row(

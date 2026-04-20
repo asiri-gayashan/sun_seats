@@ -13,7 +13,7 @@ class AboutScreen extends StatelessWidget {
         elevation: 0,
         iconTheme: const IconThemeData(color: AppTheme.darkText),
         title: const Text(
-          'About ShadeSeat LK',
+          'About SunSeat',
           style: TextStyle(color: AppTheme.darkText, fontSize: 16),
         ),
         bottom: PreferredSize(
@@ -44,7 +44,7 @@ class AboutScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                'ShadeSeat LK',
+                'SunSeat',
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
               const SizedBox(height: 8),
@@ -54,7 +54,7 @@ class AboutScreen extends StatelessWidget {
               ),
               const SizedBox(height: 32),
               const Text(
-                'ShadeSeat LK calculates the exact astronomical position of the sun during your journey to recommend which side of the vehicle will keep you in the shade.',
+                'SunSeat calculates the exact astronomical position of the sun during your journey to recommend which side of the vehicle will keep you in the shade.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 15,
