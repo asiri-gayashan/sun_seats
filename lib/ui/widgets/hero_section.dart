@@ -85,20 +85,7 @@ class HeroSection extends StatelessWidget {
           const SizedBox(height: 16),
 
           // Modern Subtitle
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text(
-              'Enter your journey details and we tell you exactly which side to sit on to avoid the sun.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: isMobile ? 15 : 18,
-                height: 1.5,
-                color: Colors.blueGrey.shade600,
-                letterSpacing: 0.2,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
+         
         ],
       ),
     );
