@@ -165,33 +165,5 @@ class DirectionsService {
   }
 
   /// Re-encodes a list of points back to Google encoded polyline format
-  static String _encodePolyline(List<Map<String, double>> points) {
-    StringBuffer result = StringBuffer();
 
-    int prevLat = 0, prevLng = 0;
-
-    for (final point in points) {
-      int lat = (point['lat']! * 1e5).round();
-      int lng = (point['lng']! * 1e5).round();
-
-      result.write(_encodeValue(lat - prevLat));
-      result.write(_encodeValue(lng - prevLng));
-
-      prevLat = lat;
-      prevLng = lng;
-    }
-
-    return result.toString();
-  }
-
-  static String _encodeValue(int value) {
-    value = value < 0 ? ~(value << 1) : value << 1;
-    StringBuffer chunks = StringBuffer();
-    while (value >= 0x20) {
-      chunks.writeCharCode(((0x20 | (value & 0x1f)) + 63));
-      value >>= 5;
-    }
-    chunks.writeCharCode(value + 63);
-    return chunks.toString();
-  }
 }
